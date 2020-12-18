@@ -68,7 +68,7 @@ public class Rocket extends GameObject {
 
     public void setGravity(){
         if(isOnLand == 0)
-            gravity = G * (1.3 * Math.pow(10,24))/(getRealRange()*getRealRange()); // g= GN/r^2
+            gravity = G * (1.3 * Math.pow(10,24))/(getRealRange()*getRealRange()); // g= G/r^2
         else
             gravity = 0;
     }
