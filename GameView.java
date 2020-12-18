@@ -83,7 +83,7 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
     protected void onDraw(Canvas canvas) {
         Earth earth = mGame.getEarth();
         Rocket rocket = mGame.getRocket();
-        // drawTrajectory(canvas, trajectoryPaint, rocket); // 실시간 궤적 그리기 -> 주석 풀면 그려짐
+        drawTrajectory(canvas, trajectoryPaint, rocket); // 실시간 궤적 그리기 -> 주석 풀면 그려짐
         canvas.drawCircle(earth.getX(), earth.getY(), earth.getRadius(), earthPaint); // 지구그리기
         drawRocket(canvas, rocketPaint, rocket); // 로켓 그리기
         canvas.drawText("Gravity :  ("+formatter.format(rocket.getGravity())+" m/s^2)", 50, 50 , textPaint);
@@ -109,23 +109,45 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
     public void drawTrajectory(Canvas canvas , Paint paint, Rocket rocket){
         Path path = new Path();
         int i;
+        float X;
+        float Y;
         double speedX;
         double speedY;
+        double gravity;
+        double gravityX;
+        double gravityY;
         double distanceX = 0;
         double distanceY = 0;
 
         path.moveTo(rocket.getX(), rocket.getY());
+        X = rocket.getX();
+        Y = rocket.getY();
         speedX = rocket.getRealSpeedX();
         speedY = rocket.getRealSpeedY();
-        for(i=1; i<=1001; i+=10){
-            speedX += rocket.getGravityX() * (rocket.getTime()*i);
-            speedY += rocket.getGravityY() * (rocket.getTime()*i);
+        gravityX = rocket.getGravityX();
+        gravityY = rocket.getGravityY();
 
-            distanceX = (speedX*(rocket.getTime()*i)) + (0.5 * rocket.getGravityX() * (rocket.getTime()*i)*(rocket.getTime()*i));
-            distanceY = (speedY*(rocket.getTime()*i)) + (0.5 * rocket.getGravityY() * (rocket.getTime()*i)*(rocket.getTime()*i));
-            path.lineTo(rocket.getX() - (float)(distanceX/10000), rocket.getY()+ (float)(distanceY/10000));
+        for(i=1; i<=1001; i+=10){
+            speedX += gravityX * (rocket.getTime()*i);
+            speedY += gravityY * (rocket.getTime()*i);
+
+            distanceX = (speedX*(rocket.getTime()*i)) + (0.5 * gravityX * (rocket.getTime()*i)*(rocket.getTime()*i));
+            distanceY = (speedY*(rocket.getTime()*i)) + (0.5 * gravityY * (rocket.getTime()*i)*(rocket.getTime()*i));
+            X = X - (float)(distanceX/10000);
+            Y = Y + (float)(distanceY/10000);
+            path.lineTo(X, Y);
+
+            ///update
+            double range = Math.sqrt( Math.pow(X-540,2)+Math.pow(Y-942,2)) * 10000;
+            double angle = Math.acos((X - 540) / range);
+            gravity = rocket.getG()*1.3 * Math.pow(10,24)/ (range*range);
+            gravityX = gravity * Math.cos(angle);
+            gravityY = gravity * Math.sin(angle);
+            //if(Y >= 942) gravityY = -gravityY;
+
+            if(range <= 300*10000) break;
         }
-        path.moveTo(rocket.getX() - (float)(distanceX/10000), rocket.getY()+ (float)(distanceY/10000));
+        path.moveTo(X, Y);
         path.close();
         canvas.drawPath(path, paint);
     }
